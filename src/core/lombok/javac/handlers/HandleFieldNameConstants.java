@@ -170,7 +170,8 @@ public class HandleFieldNameConstants extends JavacAnnotationHandler<FieldNameCo
 		java.util.List<JCVariableDecl> generated = new ArrayList<JCVariableDecl>();
 		for (JavacNode field : fields) {
 			Name fName = ((JCVariableDecl) field.get()).name;
-			if (uppercase) fName = typeNode.toName(HandlerUtil.camelCaseToConstant(fName.toString()));
+			String uppercaseStr = HandlerUtil.camelCaseToConstant(fName.toString());
+			if (uppercase) fName = typeNode.toName(uppercaseStr);
 			if (fieldExists(fName.toString(), fieldsType) != MemberExistsResult.NOT_EXISTS) continue;
 			JCModifiers constantValueMods = maker.Modifiers(Flags.PUBLIC | Flags.STATIC | Flags.FINAL | (asEnum ? Flags.ENUM : 0L));
 			JCExpression returnType;
@@ -180,7 +181,7 @@ public class HandleFieldNameConstants extends JavacAnnotationHandler<FieldNameCo
 				init = maker.NewClass(null, List.<JCExpression>nil(), maker.Ident(fieldsName), List.<JCExpression>nil(), null);
 			} else {
 				returnType = chainDots(field, "java", "lang", "String");
-				init = maker.Literal(field.getName());
+				init = maker.Literal(uppercaseStr.toLowerCase());
 			}
 			JCVariableDecl constantField = maker.VarDef(constantValueMods, fName, returnType, init);
 			injectField(fieldsType, constantField, false, true);

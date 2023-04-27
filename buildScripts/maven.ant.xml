@@ -60,13 +60,40 @@ This buildfile is part of projectlombok.org. It makes maven-compatible repositor
 		</sequential>
 	</macrodef>
 	
-	<target name="maven" depends="version, dist, javadoc.build, -setup.build" description="Creates a maven repo for the current release into a build dir. The intent is for you to put that on a server someplace. Will invoke your local mvn installation.">
+<!--	<target name="maven" depends="version, dist, javadoc.build, -setup.build" description="Creates a maven repo for the current release into a build dir. The intent is for you to put that on a server someplace. Will invoke your local mvn installation.">-->
+<!--		<mkdir dir="build" />-->
+<!--		<mkdir dir="dist" />-->
+<!--		-->
+<!--		<maven.make version-name="${lombok.version}" />-->
+<!--	</target>-->
+	<target name="maven" depends="version, dist, javadoc.build, -setup.build" description="">
 		<mkdir dir="build" />
 		<mkdir dir="dist" />
-		
+
 		<maven.make version-name="${lombok.version}" />
+		<tar destfile="dist/mavenPublish.tar.bz2" compression="bzip2">
+			<tarfileset dir="dist">
+				<include name="lombok-${lombok.version}.jar" />
+				<include name="lombok-${lombok.version}-sources.jar" />
+				<include name="lombok-${lombok.version}-javadoc.jar" />
+			</tarfileset>
+			<tarfileset dir="build" includes="pom.xml" />
+		</tar>
+
+		<exec executable="${exe.mvn}" failifexecutionfails="false" resultproperty="mvn.result">
+			<arg value="install:install-file" />
+			<arg value="-Dfile=dist/lombok-${lombok.version}.jar" />
+			<arg value="-Dsources=dist/lombok-${lombok.version}-sources.jar" />
+			<arg value="-Djavadoc=dist/lombok-${lombok.version}-javadoc.jar" />
+			<arg value="-DgroupId=org.projectlombok" />
+			<arg value="-DartifactId=mylombok" />
+			<arg value="-Dversion=${lombok.version}-SNAPSHOT" />
+			<arg value="-DpomFile=build/pom.xml" />
+		</exec>
+
 	</target>
-	
+
+
 	<target name="maven.publish" depends="maven, -setup.ossrh">
 		<fail>
 			Your lombok clone does not include the OSSRH deployment keys. Contact the core maintainers for these keys;
